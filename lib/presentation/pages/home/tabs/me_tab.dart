@@ -102,11 +102,11 @@ class _MeTabState extends ConsumerState<MeTab> {
                         Icons.language,
                         onTap: () {
                           // 延迟执行，确保在构建完成后才进行导航
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (mounted) {
-                              context.push('/language');
-                            }
-                          });
+                          // WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            context.push('/language');
+                          }
+                          // });
                         },
                       ),
                       const SizedBox(height: 12),
@@ -117,11 +117,11 @@ class _MeTabState extends ConsumerState<MeTab> {
                         Icons.help_outline,
                         onTap: () {
                           // 延迟执行，确保在构建完成后才进行导航
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (mounted) {
-                              context.push('/faq');
-                            }
-                          });
+                          // WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            context.push('/faq');
+                          }
+                          // });
                         },
                       ),
                       const SizedBox(height: 12),

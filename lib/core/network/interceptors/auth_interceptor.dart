@@ -57,8 +57,13 @@ class AuthInterceptor extends Interceptor {
     // 1. 优先使用设置的语言
     final savedLanguageCode = _storage.getString('selected_language');
     if (savedLanguageCode != null && savedLanguageCode.isNotEmpty) {
-      // 确保是支持的语言（en 或 zh）
-      if (savedLanguageCode == 'en' || savedLanguageCode == 'zh') {
+      // 确保是支持的语言
+      if (savedLanguageCode == 'en' ||
+          savedLanguageCode == 'zh' ||
+          savedLanguageCode == 'de' ||
+          savedLanguageCode == 'es' ||
+          savedLanguageCode == 'ja' ||
+          savedLanguageCode == 'ko') {
         return savedLanguageCode;
       }
     }
@@ -67,8 +72,13 @@ class AuthInterceptor extends Interceptor {
     try {
       final systemLocale = ui.PlatformDispatcher.instance.locale;
       final systemLanguageCode = systemLocale.languageCode.toLowerCase();
-      // 检查是否是英文或中文
-      if (systemLanguageCode == 'en' || systemLanguageCode == 'zh') {
+      // 检查是否是支持的语言
+      if (systemLanguageCode == 'en' ||
+          systemLanguageCode == 'zh' ||
+          systemLanguageCode == 'de' ||
+          systemLanguageCode == 'es' ||
+          systemLanguageCode == 'ja' ||
+          systemLanguageCode == 'ko') {
         return systemLanguageCode;
       }
     } catch (e) {

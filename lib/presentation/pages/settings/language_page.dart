@@ -27,7 +27,31 @@ class _LanguagePageState extends State<LanguagePage> {
     // 从本地存储获取已选择的语言
     final savedLanguageCode = _storage.getString('selected_language');
     if (savedLanguageCode != null) {
-      _selectedLocale = Locale(savedLanguageCode);
+      // 根据语言代码创建对应的 Locale
+      Locale? locale;
+      switch (savedLanguageCode) {
+        case 'en':
+          locale = const Locale('en', 'US');
+          break;
+        case 'zh':
+          locale = const Locale('zh', 'CN');
+          break;
+        case 'de':
+          locale = const Locale('de', 'DE');
+          break;
+        case 'es':
+          locale = const Locale('es', 'ES');
+          break;
+        case 'ja':
+          locale = const Locale('ja', 'JP');
+          break;
+        case 'ko':
+          locale = const Locale('ko', 'KR');
+          break;
+      }
+      if (locale != null) {
+        _selectedLocale = locale;
+      }
     } else {
       // 延迟获取当前语言，确保 context 已完全初始化
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -98,6 +122,38 @@ class _LanguagePageState extends State<LanguagePage> {
                         colors,
                         const Locale('zh', 'CN'),
                         'language_chinese',
+                      ),
+                      const SizedBox(height: 12),
+                      // Deutsch
+                      _buildLanguageItem(
+                        context,
+                        colors,
+                        const Locale('de', 'DE'),
+                        'language_german',
+                      ),
+                      const SizedBox(height: 12),
+                      // Español
+                      _buildLanguageItem(
+                        context,
+                        colors,
+                        const Locale('es', 'ES'),
+                        'language_spanish',
+                      ),
+                      const SizedBox(height: 12),
+                      // 日本語
+                      _buildLanguageItem(
+                        context,
+                        colors,
+                        const Locale('ja', 'JP'),
+                        'language_japanese',
+                      ),
+                      const SizedBox(height: 12),
+                      // 한국어
+                      _buildLanguageItem(
+                        context,
+                        colors,
+                        const Locale('ko', 'KR'),
+                        'language_korean',
                       ),
                     ],
                   ),

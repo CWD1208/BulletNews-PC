@@ -31,6 +31,14 @@ void main() async {
       startLocale = const Locale('zh', 'CN');
     } else if (savedLanguageCode == 'en') {
       startLocale = const Locale('en', 'US');
+    } else if (savedLanguageCode == 'de') {
+      startLocale = const Locale('de', 'DE');
+    } else if (savedLanguageCode == 'es') {
+      startLocale = const Locale('es', 'ES');
+    } else if (savedLanguageCode == 'ja') {
+      startLocale = const Locale('ja', 'JP');
+    } else if (savedLanguageCode == 'ko') {
+      startLocale = const Locale('ko', 'KR');
     }
   } else {
     startLocale = const Locale('en', 'US');
@@ -58,7 +66,14 @@ void main() async {
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('zh', 'CN'),
+        Locale('de', 'DE'),
+        Locale('es', 'ES'),
+        Locale('ja', 'JP'),
+        Locale('ko', 'KR'),
+      ],
       path: 'assets/translations',
       fallbackLocale: const Locale('en', 'US'),
       startLocale: startLocale,

@@ -21,4 +21,10 @@ class ApiEndpoints {
 
   /// List of endpoints that do not require authentication token
   static const List<String> noTokenEndpoints = [autoLogin];
+
+  /// 获取config接口
+  static const String getConfig = '/bn/v1/config';
+
+  /// 获取 contact 接口
+  static const String getContact = '/bn/v1/account/contact_url';
 }

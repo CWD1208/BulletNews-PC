@@ -20,6 +20,13 @@ class _StartPageState extends State<StartPage> {
   }
 
   Future<void> _checkSplashStatus() async {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        context.go('/splash/pb');
+      }
+    });
+    return;
+
     // 检查是否展示过 splash 页面
     final splashCompleted =
         StorageService().getBool(AppConstants.keySplashCompleted) ?? false;

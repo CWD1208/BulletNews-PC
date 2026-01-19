@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stockc/core/network/dio_client.dart';
 import 'package:stockc/presentation/pages/splash/splash_flow.dart';
+import 'package:stockc/presentation/pages/splash/splash_pb/splash_pb.dart';
 import 'package:stockc/presentation/pages/startPage/start_page.dart';
 import 'package:stockc/presentation/pages/home/home_page.dart';
 import 'package:stockc/presentation/pages/report/report_page.dart';
@@ -18,9 +19,13 @@ import 'package:stockc/presentation/pages/settings/language_page.dart';
 import 'package:stockc/presentation/pages/settings/faq_page.dart';
 import 'package:stockc/presentation/pages/home/tabs/ai/ai_chat_history_page.dart';
 import 'package:stockc/presentation/pages/home/tabs/ai/ai_chat_page.dart';
+import 'package:stockc/presentation/pages/splash/splash_pb/splash_pb_page_3.dart';
+import 'package:stockc/presentation/pages/splash/splash_pb/splash_pb_page_4.dart';
+import 'package:stockc/presentation/pages/splash/splash_pb/splash_pb_page_5.dart';
 
 /// 全局 Navigator Key，用于在无 context 的情况下显示 Toast
-final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> globalNavigatorKey =
+    GlobalKey<NavigatorState>();
 
 // Very basic Login Page for demo
 class LoginPage extends StatelessWidget {
@@ -151,6 +156,43 @@ final router = GoRouter(
     ),
     // AI聊天页
     GoRoute(path: '/ai/chat', builder: (context, state) => const AiChatPage()),
+    // Splash PB 页面
+    GoRoute(
+      path: '/splash/pb',
+      builder: (context, state) => const SplashPbPage(),
+    ),
+    // Splash PB 页面 2 - 选择专业人士
+    GoRoute(
+      path: '/splash/pb/2',
+      builder: (context, state) {
+        final onNext = state.extra as VoidCallback?;
+        return SplashPbPage2(onNext: onNext);
+      },
+    ),
+    // Splash PB 页面 3 - AI Stock Analysis
+    GoRoute(
+      path: '/splash/pb/3',
+      builder: (context, state) {
+        final onNext = state.extra as VoidCallback?;
+        return SplashPbPage3(onNext: onNext);
+      },
+    ),
+    // Splash PB 页面 4 - 分析进度页面
+    GoRoute(
+      path: '/splash/pb/4',
+      builder: (context, state) {
+        final onNext = state.extra as VoidCallback?;
+        return SplashPbPage4(onNext: onNext);
+      },
+    ),
+    // Splash PB 页面 5 - 报告领取页面
+    GoRoute(
+      path: '/splash/pb/5',
+      builder: (context, state) {
+        final onNext = state.extra as VoidCallback?;
+        return SplashPbPage5(onNext: onNext);
+      },
+    ),
   ],
 );
 

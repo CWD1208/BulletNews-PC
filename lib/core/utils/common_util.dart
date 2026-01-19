@@ -61,9 +61,9 @@ class CommonUtil {
     WebViewConfiguration? webViewConfiguration,
   }) async {
     try {
-      if (!await canLaunchUrl(Uri.parse(url))) {
-        return false;
-      }
+      // if (!await canLaunchUrl(Uri.parse(url))) {
+      //   return false;
+      // }
       return await launchUrl(
         Uri.parse(url),
         mode: launchMode,
