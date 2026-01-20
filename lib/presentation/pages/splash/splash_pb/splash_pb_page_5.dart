@@ -2,8 +2,12 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stockc/core/constants/app_constants.dart';
+import 'package:stockc/core/services/user_service.dart';
+import 'package:stockc/core/storage/storage_service.dart';
 import 'package:stockc/core/theme/ext_colors.dart';
 import 'package:stockc/core/theme/theme_context_extension.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Splash PB 页面 5 - 报告领取页面
 class SplashPbPage5 extends StatefulWidget {
@@ -15,21 +19,45 @@ class SplashPbPage5 extends StatefulWidget {
   State<SplashPbPage5> createState() => _SplashPbPage5State();
 }
 
-class _SplashPbPage5State extends State<SplashPbPage5> {
+class _SplashPbPage5State extends State<SplashPbPage5>
+    with SingleTickerProviderStateMixin {
   int _countdown = 60; // 倒计时从60秒开始
   Timer? _countdownTimer;
   bool _hasClaimed = false; // 是否已领取
+  bool _isLoading = false; // 是否正在加载
+  late AnimationController _buttonAnimationController;
+  late Animation<double> _buttonScaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _startCountdown();
+    _initButtonAnimation();
   }
 
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _buttonAnimationController.dispose();
     super.dispose();
+  }
+
+  /// 初始化按钮动画
+  void _initButtonAnimation() {
+    _buttonAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000), // 1秒一个周期
+    )..repeat(reverse: true); // 来回循环
+
+    _buttonScaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.05, // 放大5%
+    ).animate(
+      CurvedAnimation(
+        parent: _buttonAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   /// 启动倒计时
@@ -47,7 +75,7 @@ class _SplashPbPage5State extends State<SplashPbPage5> {
       // 倒计时到0时，自动跳转到首页
       if (_countdown <= 0) {
         timer.cancel();
-        if (!_hasClaimed && mounted) {
+        if (mounted) {
           context.go('/home');
         }
       }
@@ -55,19 +83,37 @@ class _SplashPbPage5State extends State<SplashPbPage5> {
   }
 
   /// 处理领取按钮点击
-  void _handleClaim() {
-    if (_hasClaimed) return;
+  Future<void> _handleClaim() async {
+    if (_hasClaimed || _isLoading) return;
 
+    // 设置loading状态，停止按钮动画
     setState(() {
+      _isLoading = true;
       _hasClaimed = true;
     });
 
-    // 取消倒计时
-    _countdownTimer?.cancel();
+    // 停止按钮动画
+    _buttonAnimationController.stop();
+    _buttonAnimationController.reset();
 
-    // 执行下一步（如果提供了回调）
-    if (widget.onNext != null) {
-      widget.onNext!();
+    try {
+      // 获取url
+      final professorUrl = await UserService().getProfessorUrl();
+      if (professorUrl != null) {
+        await launchUrl(
+          Uri.parse(professorUrl),
+          mode: LaunchMode.externalApplication,
+        );
+      }
+    } catch (e) {
+      // 处理错误，即使失败也继续跳转
+      debugPrint('Error launching URL: $e');
+    } finally {
+      // 请求完成后跳转到home
+      if (mounted) {
+        await StorageService().setBool(AppConstants.keySplashCompleted, true);
+        context.go('/home');
+      }
     }
   }
 
@@ -94,24 +140,13 @@ class _SplashPbPage5State extends State<SplashPbPage5> {
               color: isDark ? colors.sidebarColor : null,
             ),
           ),
-          // 上层毛玻璃效果图片
-          ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                decoration: BoxDecoration(
-                  image:
-                      isDark
-                          ? null
-                          : const DecorationImage(
-                            image: AssetImage(
-                              'assets/icons/splash/splash-pb-bg.png',
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                  color: Colors.white.withOpacity(0.1), // 轻微白色遮罩，增强毛玻璃效果
-                ),
-              ),
+          Container(
+            margin: const EdgeInsets.only(left: 16, right: 16, top: 148),
+            child: Image.asset(
+              'assets/icons/splash/splash-pb-bg.png',
+              width: double.infinity,
+              height: 587,
+              fit: BoxFit.contain,
             ),
           ),
           // 内容层
@@ -122,61 +157,34 @@ class _SplashPbPage5State extends State<SplashPbPage5> {
                 _buildAppBar(context, colors),
                 // 内容区域
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 40),
-                          // AI Icon - 紫色圆形图标
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: primaryColor,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: primaryColor.withOpacity(0.3),
-                                  blurRadius: 20,
-                                  spreadRadius: 5,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Image.asset(
-                                'assets/icons/ai/ai-icon.png',
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                          // 深灰色卡片
-                          _buildInfoCard(context, colors, isDark, primaryColor),
-                          const SizedBox(height: 24),
-                          // 领取按钮
-                          _buildClaimButton(context, primaryColor),
-                          const SizedBox(height: 40),
-                          // 底部文字
-                          Text(
-                            'Powered by OpenAI',
-                            style: context.textStyles.rubikRegular(
-                              fontSize: 12,
-                              color:
-                                  isDark
-                                      ? colors.textAuxiliaryDark ??
-                                          const Color(0x99FFFFFF)
-                                      : const Color(0xFF999999),
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                        ],
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // 深灰色卡片
+                      _buildInfoCard(context, colors, isDark, primaryColor),
+                      const SizedBox(height: 84),
+                      // 领取按钮
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 33),
+                        alignment: Alignment.center,
+                        child: _buildClaimButton(context, primaryColor),
                       ),
-                    ),
+                      const SizedBox(height: 40),
+                      // 底部文字
+                      Text(
+                        'Powered by OpenAI',
+                        style: context.textStyles.rubikRegular(
+                          fontSize: 12,
+                          color:
+                              isDark
+                                  ? colors.textAuxiliaryDark ??
+                                      const Color(0x99FFFFFF)
+                                  : const Color(0xFF999999),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                    ],
                   ),
                 ),
               ],
@@ -221,75 +229,120 @@ class _SplashPbPage5State extends State<SplashPbPage5> {
     bool isDark,
     Color primaryColor,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color:
-            isDark ? const Color(0xFF2A2A2A) : const Color(0xFF333333), // 深灰色
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Your analysis is ready. Get it',
-            textAlign: TextAlign.center,
-            style: context.textStyles.rubikMedium(
-              fontSize: 18,
-              color: Colors.white,
-            ),
+    return Stack(
+      alignment: Alignment.topCenter,
+      clipBehavior: Clip.none,
+      children: [
+        // AI Icon - 紫色圆形图标
+        Container(
+          padding: const EdgeInsets.only(
+            top: 46,
+            left: 45,
+            right: 45,
+            bottom: 34,
           ),
-          const SizedBox(height: 8),
-          Text(
-            'free before time runs out!',
-            textAlign: TextAlign.center,
-            style: context.textStyles.rubikMedium(
-              fontSize: 18,
-              color: Colors.white,
-            ),
+          decoration: BoxDecoration(
+            color: const Color(0x99000000), // 深灰色
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(height: 24),
-          // 倒计时显示
-          Text(
-            '${_countdown}s',
-            style: context.textStyles.rubikBold(
-              fontSize: 48,
-              color: Colors.white,
-            ),
+          child: Column(
+            children: [
+              Text(
+                'Your analysis is ready. Get it',
+                textAlign: TextAlign.center,
+                style: context.textStyles.rubikMedium(
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'free before time runs out!',
+                textAlign: TextAlign.center,
+                style: context.textStyles.rubikMedium(
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // 倒计时显示
+              Text(
+                '${_countdown}s',
+                style: context.textStyles.rubikBold(
+                  fontSize: 48,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          top: -30,
+          child: Image.asset(
+            'assets/icons/ai/ai-icon.png',
+            width: 60,
+            height: 60,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ],
     );
   }
 
-  /// 构建领取按钮
+  /// 构建领取按钮（带放大缩小动画）
   Widget _buildClaimButton(BuildContext context, Color primaryColor) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _hasClaimed ? null : _handleClaim,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          disabledBackgroundColor: primaryColor.withOpacity(0.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+    return AnimatedBuilder(
+      animation: _buttonScaleAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale:
+              (_hasClaimed || _isLoading) ? 1.0 : _buttonScaleAnimation.value,
+          child: SizedBox(
+            width: double.infinity,
+            height: 62,
+            child: ElevatedButton(
+              onPressed: (_hasClaimed || _isLoading) ? null : _handleClaim,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                disabledBackgroundColor: primaryColor.withOpacity(0.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                elevation: 0,
+              ),
+              child:
+                  _isLoading
+                      ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                      : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Claim Your Free Report',
+                            style: context.textStyles.splashButtonText.copyWith(
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            'on WhatsApp Now',
+                            style: context.textStyles.splashButtonText.copyWith(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+            ),
           ),
-          elevation: 0,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Claim Your Free Report',
-              style: context.textStyles.splashButtonText.copyWith(fontSize: 18),
-            ),
-            Text(
-              'on WhatsApp Now',
-              style: context.textStyles.splashButtonText.copyWith(fontSize: 18),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 }

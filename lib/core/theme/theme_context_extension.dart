@@ -59,7 +59,11 @@ class AppTextStyles {
   // ========== Rubik 字体样式 ==========
 
   /// Rubik Bold - 特殊字体、标题、弹窗标题
-  TextStyle rubikBold({double fontSize = 24, Color? color}) => TextStyle(
+  TextStyle rubikBold({
+    double fontSize = 24,
+    Color? color,
+    FontWeight fontWeight = FontWeight.w700,
+  }) => TextStyle(
     fontFamily: 'Rubik',
     fontSize: fontSize,
     fontWeight: FontWeight.w700,
@@ -172,6 +176,10 @@ class AppTextStyles {
   /// Splash 按钮文本样式（Rubik SemiBold, 16px, 白色）
   TextStyle get splashButtonText =>
       rubikBold(fontSize: 18, color: Colors.white);
+
+  /// Splash 按钮文本样式（Rubik Bold, 15px, 白色, 500）
+  TextStyle get splashButtonTextSmall =>
+      rubikBold(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w500);
 
   // ========== AI 问题选项样式 ==========
 

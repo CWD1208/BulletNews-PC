@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stockc/core/constants/app_constants.dart';
+import 'package:stockc/core/services/user_service.dart';
 import 'package:stockc/core/storage/storage_service.dart';
 import 'package:stockc/core/theme/theme_context_extension.dart';
 
@@ -19,24 +23,46 @@ class _StartPageState extends State<StartPage> {
     _checkSplashStatus();
   }
 
-  Future<void> _checkSplashStatus() async {
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        context.go('/splash/pb');
+  Future<bool> _shouldShowSplashPb() async {
+    final userService = UserService();
+    final config = userService.config;
+    if (config != null) {
+      final platform = Platform.isAndroid ? 'android' : 'ios';
+      final random = Random().nextInt(99);
+      final percentage = config.commonSettings?.splashAiCPercentage;
+      if (percentage != null) {
+        if (platform == 'android'
+            ? random <= percentage.android
+            : random <= percentage.ios) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
       }
-    });
-    return;
+    } else {
+      return false;
+    }
+  }
 
+  Future<void> _checkSplashStatus() async {
     // 检查是否展示过 splash 页面
     final splashCompleted =
         StorageService().getBool(AppConstants.keySplashCompleted) ?? false;
+
+    final shouldShowSplashPb = await _shouldShowSplashPb();
 
     if (mounted) {
       if (!splashCompleted) {
         // 如果没有展示过，跳转到 splash_flow
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
-            context.go('/splash');
+            if (shouldShowSplashPb) {
+              context.go('/splash/pb');
+            } else {
+              context.go('/splash');
+            }
           }
         });
       } else {

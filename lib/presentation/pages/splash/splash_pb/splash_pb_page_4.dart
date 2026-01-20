@@ -26,20 +26,20 @@ class _SplashPbPage4State extends State<SplashPbPage4>
   // 进度阈值
   static const double _marketStartThreshold = 0.6; // 第一个到60%时，第二个开始
   static const double _dataStartThreshold = 0.4; // 第二个到40%时，第三个开始
-  static const double _progressSpeed = 0.01; // 每次更新的进度增量
+  static const double _progressSpeed = 0.03; // 每次更新的进度增量（加快速度）
 
   @override
   void initState() {
     super.initState();
-    // 初始化盾牌旋转动画
+    // 初始化盾牌旋转动画（来回摆动）
     _shieldAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true); // 使用 reverse: true 实现来回摆动
 
     _shieldRotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 0.1, // 轻微旋转
+      begin: -0.1, // 向左旋转
+      end: 0.1, // 向右旋转
     ).animate(
       CurvedAnimation(
         parent: _shieldAnimationController,
@@ -60,14 +60,14 @@ class _SplashPbPage4State extends State<SplashPbPage4>
 
   /// 启动进度更新
   void _startProgress() {
-    _progressTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+    _progressTimer = Timer.periodic(const Duration(milliseconds: 30), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
 
       setState(() {
-        // 第一个进度条持续增长
+        // 第一个进度条持续增长（从0%到100%）
         if (_marketProgress < 1.0) {
           _marketProgress += _progressSpeed;
           if (_marketProgress > 1.0) {
@@ -75,7 +75,7 @@ class _SplashPbPage4State extends State<SplashPbPage4>
           }
         }
 
-        // 当第一个进度条达到60%时，第二个开始
+        // 当第一个进度条达到60%时，第二个开始（从0%到100%）
         if (_marketProgress >= _marketStartThreshold) {
           if (_dataProgress < 1.0) {
             _dataProgress += _progressSpeed;
@@ -85,7 +85,7 @@ class _SplashPbPage4State extends State<SplashPbPage4>
           }
         }
 
-        // 当第二个进度条达到40%时，第三个开始
+        // 当第二个进度条达到40%时，第三个开始（从0%到100%）
         if (_dataProgress >= _dataStartThreshold) {
           if (_riskProgress < 1.0) {
             _riskProgress += _progressSpeed;
@@ -95,7 +95,7 @@ class _SplashPbPage4State extends State<SplashPbPage4>
           }
         }
 
-        // 检查是否所有进度条都完成
+        // 检查是否所有进度条都完成（都达到100%）
         if (_marketProgress >= 1.0 &&
             _dataProgress >= 1.0 &&
             _riskProgress >= 1.0) {

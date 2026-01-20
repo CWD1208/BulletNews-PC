@@ -62,9 +62,10 @@ class _SplashPbPage2State extends State<SplashPbPage2> {
   late ScrollController _scrollController;
   Timer? _scrollTimer;
   static const double _itemWidth = 96.0; // 64 (头像) + 32 (间距)
-  static const Duration _scrollDuration = Duration(
-    milliseconds: 2000,
-  ); // 每2秒滚动一次
+  static const double _scrollSpeed = 0.5; // 每次滚动的像素数（越小越平滑）
+  static const Duration _scrollInterval = Duration(
+    milliseconds: 16,
+  ); // 每16ms更新一次（约60fps，实现平滑滚动）
 
   @override
   void initState() {
@@ -81,12 +82,6 @@ class _SplashPbPage2State extends State<SplashPbPage2> {
       }
       _startAutoScroll();
     });
-
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      if (mounted) {
-        context.go('/splash/pb/3');
-      }
-    });
   }
 
   @override
@@ -98,6 +93,7 @@ class _SplashPbPage2State extends State<SplashPbPage2> {
   }
 
   /// 滚动监听，实现无缝循环
+  /// 注意：由于使用持续滚动，这个监听主要用于边界检测
   void _onScroll() {
     if (!_scrollController.hasClients) return;
 
@@ -106,7 +102,7 @@ class _SplashPbPage2State extends State<SplashPbPage2> {
     final currentPosition = position.pixels;
 
     // 如果滚动到接近末尾（第三组的末尾），无缝跳转到中间部分（第二组的相同位置）
-    if (currentPosition >= maxScroll - _itemWidth) {
+    if (currentPosition >= maxScroll - _itemWidth * 2) {
       final jumpPosition = professionals.length * _itemWidth;
       _scrollController.jumpTo(jumpPosition);
     }
@@ -117,21 +113,26 @@ class _SplashPbPage2State extends State<SplashPbPage2> {
     }
   }
 
-  /// 启动自动滚动
+  /// 启动自动滚动（持续平滑滚动）
   void _startAutoScroll() {
     if (!mounted) return;
 
-    _scrollTimer = Timer.periodic(_scrollDuration, (timer) {
+    _scrollTimer = Timer.periodic(_scrollInterval, (timer) {
       if (!mounted || !_scrollController.hasClients) return;
 
       final currentPosition = _scrollController.position.pixels;
+      final maxScroll = _scrollController.position.maxScrollExtent;
 
-      // 平滑滚动到下一个位置
-      _scrollController.animateTo(
-        currentPosition + _itemWidth,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+      // 持续平滑滚动
+      double newPosition = currentPosition + _scrollSpeed;
+
+      // 如果接近末尾，无缝跳转到中间部分
+      if (newPosition >= maxScroll - _itemWidth) {
+        newPosition = professionals.length * _itemWidth;
+      }
+
+      // 直接设置位置，实现平滑滚动
+      _scrollController.jumpTo(newPosition);
     });
   }
 
@@ -225,7 +226,37 @@ class _SplashPbPage2State extends State<SplashPbPage2> {
                               : const Color(0xFF999999),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 64),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.push('/splash/pb/3');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: RichText(
+                        text: TextSpan(
+                          style: context.textStyles.splashButtonTextSmall,
+                          children: [
+                            TextSpan(text: 'Start '),
+                            TextSpan(
+                              text: 'Free',
+                              style: context.textStyles.splashButtonText
+                                  .copyWith(color: yellowColor),
+                            ),
+                            TextSpan(text: ' Analysis'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -245,69 +276,72 @@ class _SplashPbPage2State extends State<SplashPbPage2> {
     final extendedList = [...professionals, ...professionals, ...professionals];
 
     return SizedBox(
-      height: 100,
+      height: 110, // 增加高度以避免溢出
       child: ListView.builder(
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
-        physics: const AlwaysScrollableScrollPhysics(), // 允许滚动
+        physics: const NeverScrollableScrollPhysics(), // 禁用用户滚动，只允许自动滚动
         itemCount: extendedList.length,
         itemBuilder: (context, index) {
           final professional = extendedList[index];
           return Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 头像
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color:
-                          isDark
-                              ? colors.textAuxiliaryDark ??
-                                  const Color(0x33FFFFFF)
-                              : const Color(0xFFE0E0E0),
-                      width: 2,
+            child: SizedBox(
+              width: 80,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // 头像
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color:
+                            isDark
+                                ? colors.textAuxiliaryDark ??
+                                    const Color(0x33FFFFFF)
+                                : const Color(0xFFE0E0E0),
+                        width: 2,
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        professional.imagePath,
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.person, size: 32),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      professional.imagePath,
-                      width: 64,
-                      height: 64,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.person, size: 32),
-                        );
-                      },
+                  const SizedBox(height: 8),
+                  // 名字 - 使用 Flexible 避免溢出
+                  Flexible(
+                    child: Text(
+                      professional.name,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textStyles.rubikRegular(
+                        fontSize: 11,
+                        color:
+                            isDark
+                                ? colors.textAuxiliaryDark ??
+                                    const Color(0x99FFFFFF)
+                                : const Color(0xFF666666),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                // 名字
-                SizedBox(
-                  width: 80,
-                  child: Text(
-                    professional.name,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.textStyles.rubikRegular(
-                      fontSize: 11,
-                      color:
-                          isDark
-                              ? colors.textAuxiliaryDark ??
-                                  const Color(0x99FFFFFF)
-                              : const Color(0xFF666666),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },

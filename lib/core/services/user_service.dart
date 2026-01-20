@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:stockc/core/constants/app_constants.dart';
 import 'package:stockc/core/network/dio_client.dart';
 import 'package:stockc/core/storage/storage_service.dart';
+import 'package:stockc/data/models/config_model.dart';
 import 'package:stockc/data/models/user_model.dart';
 import 'package:stockc/data/repositories/auth_repository.dart';
 import 'package:stockc/data/repositories/user_repository.dart';
@@ -28,6 +29,9 @@ class UserService {
   /// 获取当前token（从内存）
   String? get token => _token;
 
+  ConfigModel? _config;
+  ConfigModel? get config => _config;
+
   /// 初始化服务（应用启动时调用）
   Future<void> init() async {
     await _loadToken();
@@ -38,6 +42,7 @@ class UserService {
     }
     // 然后刷新服务器数据（会保留本地的使用次数）
     await refreshUserInfo();
+    await getConfig();
   }
 
   /// 检查是否已登录
@@ -92,6 +97,23 @@ class UserService {
     final response = await _userRepository.autoLogin(uuid);
     await setToken(response.token);
     await setUserInfo(response.account);
+  }
+
+  Future<void> getConfig() async {
+    try {
+      _config = await _userRepository.getConfig();
+    } catch (e) {
+      _config = null;
+    }
+  }
+
+  /// 获取professorUrl
+  Future<String?> getProfessorUrl() async {
+    try {
+      return await _userRepository.getProfessorUrl();
+    } catch (e) {
+      return null;
+    }
   }
 
   /// 登录

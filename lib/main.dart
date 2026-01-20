@@ -20,7 +20,7 @@ void main() async {
   await StorageService().init();
 
   // 初始化用户服务
-  UserService().init();
+  await UserService().init();
 
   // 读取保存的语言设置
   final storage = StorageService();
