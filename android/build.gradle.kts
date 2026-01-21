@@ -3,6 +3,14 @@ allprojects {
         google()
         mavenCentral()
     }
+    
+    // Force resolution strategy to use project's AGP version
+    // This ensures all plugins use the same AGP version as the main project
+    configurations.all {
+        resolutionStrategy {
+            force("com.android.tools.build:gradle:8.9.1")
+        }
+    }
 }
 
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()

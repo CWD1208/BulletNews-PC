@@ -14,6 +14,14 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "com.android.tools.build:gradle") {
+                useVersion("8.9.1")
+            }
+        }
+    }
 }
 
 plugins {

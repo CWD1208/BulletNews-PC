@@ -35,6 +35,12 @@ class AppConstants {
   /// UUID
   static const String keyUuid = 'uuid';
 
+  /// afID
+  static const String keyAppsflyerId = 'appsflyer_id';
+
+  /// afApiKey
+  static const String keyAppsflyerApiKey = 'appsflyer_api_key';
+
   // ==================== 课程相关 Key ====================
 
   /// 课程进度 Key（需要拼接 courseId）

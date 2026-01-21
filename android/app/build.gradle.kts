@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.example.stockc"
-    compileSdk = flutter.compileSdkVersion
+    // Use SDK 36 (backward compatible with SDK 35)
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -25,7 +26,8 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        // Use SDK 36 (backward compatible with SDK 35)
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
