@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stockc/core/constants/app_constants.dart';
+import 'package:stockc/core/services/appsflyer_service.dart';
 import 'package:stockc/core/storage/storage_service.dart';
 import 'splash_page_1.dart';
 import 'splash_page_2.dart';
@@ -16,6 +17,25 @@ class SplashFlow extends StatefulWidget {
 class _SplashFlowState extends State<SplashFlow> {
   int _currentPage = 0;
   final PageController _pageController = PageController();
+  bool _hasLoggedSplashShow = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Splash 界面成功展示时触发 splash_show 埋点
+    _logSplashShow();
+  }
+
+  Future<void> _logSplashShow() async {
+    if (!_hasLoggedSplashShow) {
+      _hasLoggedSplashShow = true;
+      try {
+        await AppsFlyerService().logEvent('splash_show');
+      } catch (e) {
+        // 埋点失败不影响页面展示
+      }
+    }
+  }
 
   void _nextPage() {
     if (_currentPage < 2) {

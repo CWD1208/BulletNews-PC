@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:stockc/core/services/appsflyer_service.dart';
 import 'package:stockc/core/theme/ext_colors.dart';
 import 'package:stockc/core/theme/theme_context_extension.dart';
 import 'package:go_router/go_router.dart';
@@ -16,14 +17,24 @@ class SplashPbPage extends StatefulWidget {
 class _SplashPbPageState extends State<SplashPbPage> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+
+    // Splash 界面成功展示时触发 splash_show 埋点
+    _logSplashShow();
 
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         context.go('/splash/pb/2');
       }
     });
+  }
+
+  Future<void> _logSplashShow() async {
+    try {
+      await AppsFlyerService().logEvent('splash_show');
+    } catch (e) {
+      // 埋点失败不影响页面展示
+    }
   }
 
   @override

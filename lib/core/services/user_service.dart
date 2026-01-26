@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:stockc/core/constants/app_constants.dart';
 import 'package:stockc/core/network/dio_client.dart';
+import 'package:stockc/core/services/appsflyer_service.dart';
 import 'package:stockc/core/storage/storage_service.dart';
 import 'package:stockc/data/models/config_model.dart';
 import 'package:stockc/data/models/user_model.dart';
@@ -97,6 +98,16 @@ class UserService {
     final response = await _userRepository.autoLogin(uuid);
     await setToken(response.token);
     await setUserInfo(response.account);
+
+    // 自动登录成功后触发 signup_success 埋点
+    try {
+      await AppsFlyerService().logEvent('signup_success');
+      if (response.account.handle != null) {
+        await AppsFlyerService().setCustomUserId();
+      }
+    } catch (e) {
+      // 埋点失败不影响登录流程
+    }
   }
 
   Future<void> getConfig() async {

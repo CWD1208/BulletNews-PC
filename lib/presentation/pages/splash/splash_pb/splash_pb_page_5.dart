@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stockc/core/constants/app_constants.dart';
+import 'package:stockc/core/services/appsflyer_service.dart';
 import 'package:stockc/core/services/user_service.dart';
 import 'package:stockc/core/storage/storage_service.dart';
 import 'package:stockc/core/theme/ext_colors.dart';
@@ -95,6 +96,18 @@ class _SplashPbPage5State extends State<SplashPbPage5>
     // 停止按钮动画
     _buttonAnimationController.stop();
     _buttonAnimationController.reset();
+
+    // 触发联系专家相关的埋点
+    try {
+      // 同时触发 contact_click_splash 和 contact_click 埋点
+      await Future.wait([
+        AppsFlyerService().logEvent('contact_click_splash'),
+        AppsFlyerService().logEvent('contact_click'),
+      ]);
+    } catch (e) {
+      // 埋点失败不影响功能
+      debugPrint('Error logging contact events: $e');
+    }
 
     try {
       // 获取url

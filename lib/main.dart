@@ -11,6 +11,7 @@ import 'package:stockc/presentation/providers/theme_provider.dart';
 
 import 'package:stockc/core/config/env_config.dart';
 import 'package:stockc/core/network/dio_client.dart';
+import 'package:stockc/core/services/appsflyer_service.dart';
 import 'package:toastification/toastification.dart';
 import 'dart:io';
 
@@ -18,6 +19,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await StorageService().init();
+
+
+  // 初始化 AppsFlyer 并触发 app_open 埋点
+  await _initAppsFlyerAndLogAppOpen();
 
   // 初始化用户服务
   await UserService().init();
@@ -64,6 +69,7 @@ void main() async {
   // Setup Global Auth Listener
   setupAuthListener();
 
+
   runApp(
     EasyLocalization(
       supportedLocales: const [
@@ -80,6 +86,18 @@ void main() async {
       child: const ProviderScope(child: MyApp()),
     ),
   );
+}
+
+/// 初始化 AppsFlyer 并记录 app_open 埋点
+Future<void> _initAppsFlyerAndLogAppOpen() async {
+  try {
+    // 初始化 AppsFlyer
+    await AppsFlyerService().init(isDebug: false);
+    // 触发 app_open 埋点
+    await AppsFlyerService().logEvent('app_open');
+  } catch (e) {
+    debugPrint('Failed to initialize AppsFlyer or log app_open: $e');
+  }
 }
 
 class MyApp extends ConsumerWidget {
